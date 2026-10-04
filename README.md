@@ -1,174 +1,135 @@
-# Your Project Name
+# Gig Rate Calc
 
-> **Replace this whole file.** It is a worked example of the README your project
-> will be graded from, not a file to leave as it is. Start with
-> [START-HERE.md](START-HERE.md).
+Week 2 Documentation (Week of 2026-09-18 to 2026-09-26)
 
-One sentence saying what this does and who it is for.
+AI use and authorship are documented in [AI-USAGE.md](AI-USAGE.md).
 
-**Live site:** https://yourusername.github.io/your-repo-name/
-**API:** https://your-api.onrender.com/healthz
-**Demo video:** (link)
+## Overview
 
-> **This deployment is running in demo mode.** The interface is real; the backend
-> is simulated in your browser so the site works without a server. See
-> [Demo mode](#demo-mode) below. Delete this quote once your API is live.
+Gig Rate Calc is a full-stack app for calculating and saving freelance editing quotes. It helps a freelance editor estimate a job price based on details such as word count, turnaround time, complexity, and preferred rate, then review and reuse previous quotes instead of starting from scratch each time.
 
-![A screenshot of the main screen](docs/assets/screenshot.png)
+## Setup and installation
 
-## What it does
+Prereqs:
+- Node.js (v18+ recommended)
+- PostgreSQL (13+)
+- npm
 
-- Report a sighting with a place, a description and a spookiness rating
-- Browse everything reported, newest first
-- Delete a report
+Get the code and install dependencies:
 
-## Built with
+```bash
+git clone https://github.com/GGTsuyan/GigRateCalc/tree/main
+cd gig
+npm install
+cd client
+npm install
+```
 
-React and Vite on the front end, Express and PostgreSQL on the back end. The
-client is on GitHub Pages, the API on (host), the database on (host).
+Environment variables (create a `.env` in the project root):
 
-## Demo mode
+```env
+DATABASE_URL=postgres://dbuser:dbpass@localhost:5432/gig_dev
+PORT=4000
+CLIENT_PORT=5173
+VITE_API_BASE=http://localhost:4000
+```
 
-This repository can run two ways, chosen by one environment variable at **build**
-time.
+Database setup:
 
-**Demo mode is the default.** Only the exact string `false` turns it off, so a
-forgotten or mistyped variable leaves you on the simulated backend with a visible
-notice rather than on a silently broken build.
+```bash
+createdb gig_dev
+# or: psql -c "CREATE DATABASE gig_dev;"
+```
 
-| `VITE_USE_MOCK_API` | What happens |
-| --- | --- |
-| unset, or `true` | The client answers its own requests from `localStorage`. No server, no database, nothing shared between visitors. This is what the template ships with, so the GitHub Pages link works on day one. |
-| `false` | The client calls the Express API at `VITE_API_BASE_URL`, which reads and writes real PostgreSQL. |
+Schema and seed:
+- The project schema is defined in `db/schema.js`.
+- The server applies the schema automatically at startup through `createSchema` in `db/schema.js`.
+- There is no seed runner yet; create the database before starting the server.
 
-**Demo mode is a starting point and a fallback, not a finished project.** Your
-finals submission is all three pieces deployed and talking to each other. Demo
-mode is there so you can build the interface in week one before the API exists,
-and so you have something to show if a free tier is asleep during your demo.
+## How to run it
 
-GitHub Pages serves files and cannot run Node, so the API and the database can
-never live there. They go somewhere else:
+Start the backend from the project root:
 
-| Piece | Options |
-| --- | --- |
-| **API** | Render, Railway, Fly.io, Koyeb, a VPS, or [self-hosted behind a tunnel](../content/extending-your-app/11-self-hosting.md) |
-| **Database** | Neon, Supabase, Railway, Aiven, or your own PostgreSQL |
+```bash
+npm start
+```
 
-`content/extending-your-app/` in your course workspace walks through all of it.
-Page 10 is the decision page if you do not know which to pick.
+Start the frontend in development mode:
 
-## Running it yourself
+```bash
+cd client
+npm run dev
+```
 
-**The client only, in demo mode.** No database needed.
+Expected addresses:
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:4000`
 
-    cd client
-    npm install
-    cp .env.example .env        # VITE_USE_MOCK_API stays true
-    npm run dev                 # http://localhost:5173
+If the app does not start, check that PostgreSQL is running, the database exists, and the environment variables are configured correctly.
 
-**The whole stack.** Needs a PostgreSQL, either local or hosted.
+## Features and usage
 
-    # 1. the database
-    docker run --name my-pg -e POSTGRES_PASSWORD=devpassword \
-      -e POSTGRES_DB=haunted -p 5432:5432 -d postgres:17
+- Quote entry: enter project details such as word count, complexity, turnaround, and rate.
+- Instant calculation: see a live estimate based on the current inputs.
+- Save quotes: store completed estimates for later review.
+- History: revisit previous quotes and reuse them for similar work.
+- Settings: manage default pricing assumptions and app preferences.
 
-    # 2. the API
-    cd server
-    npm install
-    cp .env.example .env        # check DATABASE_URL
-    npm run db:reset            # creates the tables and adds sample rows
-    npm run dev                 # http://localhost:3000
-
-    # 3. the client, in another terminal
-    cd client
-    npm install
-    cp .env.example .env
-    # set VITE_USE_MOCK_API=false
-    npm run dev
-
-Check the API on its own before you blame the client:
-
-    curl http://localhost:3000/healthz     # is the process alive
-    curl http://localhost:3000/readyz      # is the database reachable
-    curl http://localhost:3000/api/sightings
-
-## Environment variables
-
-None of these are committed. `.env.example` in each folder lists them with
-placeholder values.
-
-| Name | Where | What it is |
-| --- | --- | --- |
-| `DATABASE_URL` | server | PostgreSQL connection string. Contains a password |
-| `CORS_ORIGINS` | server | comma-separated origins allowed to call the API |
-| `NODE_ENV` | server | `production` on your host |
-| `PORT` | server | **set by the host**, do not set it yourself |
-| `VITE_USE_MOCK_API` | client, at build time | only `false` turns demo mode off; unset means on |
-| `VITE_API_BASE_URL` | client, at build time | your API's public URL, no trailing slash |
-
-Every `VITE_` value is compiled into the built JavaScript and is **public**.
-Never put a key, a password or a connection string in one.
-
-## Deploying
-
-**Client, to GitHub Pages.** Already wired up in
-`.github/workflows/deploy-pages.yml`. Two one-time steps:
-
-1. **Settings > Pages > Build and deployment > Source: GitHub Actions.** Without
-   this the workflow goes green and publishes nothing.
-2. Nothing else, until your API is live. Demo mode is the default, so the first
-   deploy works on its own. When the API is up, add `VITE_USE_MOCK_API` = `false`
-   and `VITE_API_BASE_URL` under **Settings > Secrets and variables > Actions >
-   Variables**, then re-run the workflow.
-
-The repository must be **public** for Pages to serve it on a free account.
-
-**API and database.** Not automated here, because most hosts deploy straight from
-your repository with no workflow at all. Point your host at the `server/` folder,
-set the environment variables in its dashboard, and run `server/db/schema.sql`
-once against the hosted database.
+API endpoints:
+- `GET /api/quotes` — list saved quotes
+- `POST /api/quotes` — create a new quote
+- `GET /api/rates` — list saved rate settings
+- `POST /api/rates` — create or update rate data
 
 ## Project structure
 
-    client/          React front end, built by Vite
-      src/api/       ONE interface, two implementations, chosen by a variable
-      src/components/
-    server/          Express API
-      db/            pool, schema.sql, seed.sql, and a runner for them
-    compose.yml      only if you self-host
-    docs/            your planning documents and weekly reports
+- `client/` — React + Vite frontend
+- `server/` — Express backend and route handling
+- `db/` — PostgreSQL connection and schema setup
+- `repos/` — database access layer for quotes and rates
+- `pgdata/` — local Postgres data files
 
-## Architecture
+## Screenshots
 
-Three or four sentences, or a small diagram. Which piece talks to which, and
-where each one is hosted.
+Add at least one screenshot of the quote form and history screen so the app is easier to understand for graders and future users.
 
-## What I would do next
+Suggested images:
+- `screenshots/form.png`
+- `screenshots/history.png`
 
-Three honest bullets. This paragraph is worth more than it looks.
+## Known issues and next steps
 
-## Author
+- Startup reliability still needs work; the full stack is not yet completely stable in a fresh local environment.
+- Database creation and schema application should be more automated.
+- Validation and error handling still need to be improved on both the frontend and backend.
+- The quote calculation logic should be tightened to better reflect real-world pricing rules.
+- More sample data and tests would make the app easier to demo and evaluate.
 
-Your name, and a link. Course and section.
+## Week 2 report summary
 
-## AI use
+### What changed this week
+- Continued developing the full-stack app from the initial scaffold into a more complete prototype.
+- Refined the backend to support quote and rate operations with Postgres.
+- Expanded the frontend around the quote flow and saved history.
+- Clarified the app purpose around freelance editing pricing.
+- Improved the documentation so the project is easier to understand and run.
 
-If you used AI while building this, say so here. Honest disclosure is the
-standard in this course and increasingly outside it, and reporting heavy use
-accurately costs you nothing.
+### Why
+- The goal for Week 2 was to move beyond setup and into a usable interface for the main project flow.
+- The app needed to prove that a user could enter job details, calculate a quote, and save the result in a meaningful way.
+- This created a stronger foundation for the final polishing step in the next iteration.
 
-This section is the last 10 points of the finals badge, and it wants three
-things:
+### What broke or what I got stuck on
+- Local startup still had reliability issues when the full stack was run in one environment.
+- Database setup and configuration were not yet smooth enough for a fresh machine or a clean local clone.
+- Some frontend/backend integration points needed more validation and clearer error handling.
 
-![Built with AI assistance](https://img.shields.io/badge/built%20with-AI%20assistance-0b5fff)
+### What is left
+- Fix the startup flow and verify the app works consistently from a clean environment.
+- Add stronger validation and better user feedback for errors.
+- Improve the quote logic so it behaves more like a realistic pricing tool.
+- Add sample data and screenshots to make the project easier to assess.
 
-- the badge above, or one you like better
-- a line naming which assistant you used and how much of the work it touched
-- a link to [AI-USAGE.md](AI-USAGE.md), where the full account lives
-
-Keep the detail in `AI-USAGE.md` rather than here. This section is the summary a
-visitor reads; that file is the record the badge is graded from.
-
-## Licence
-
-MIT, see [LICENSE](LICENSE). Put your own name in it.
+### How it is graded
+- The project is evaluated on setup success, feature clarity, and honest documentation of what works and what still needs improvement.
+- A clear README, working project flow, and realistic next steps are more important than claiming the app is fully finished when it is not.
